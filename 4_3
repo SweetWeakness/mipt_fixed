@@ -1,0 +1,99 @@
+/*4_3. Количество инверсий.
+Дана последовательность целых чисел из диапазона (-10^9 .. 10^9). Длина последовательности не больше 10^6. Числа записаны по одному в строке. Количество чисел не указано.
+Пусть количество элементов n, и числа записаны в массиве a = a[i]: i из [0..n-1].
+Требуется напечатать количество таких пар индексов (i,j) из [0..n-1], что (i < j и a[i] > a[j]).
+Указание: количество инверсий может быть больше 4*10^9 - используйте int64_t.
+*/
+
+#include <iostream>
+#include <vector>
+#include <stdint.h>
+
+
+bool compare(int a, int b){
+    return a>b;
+}
+
+void memcpy(int* a,int* c, int n){
+    for(int i=0;i<n;i++){
+        a[i]=c[i];
+    }
+}
+
+template <typename T>
+void Merge( const T* a, const T* b,int aLen,  T* c,int bLen, int64_t* counter, bool (*cmp)(T, T) ) {
+    int i = 0, j = 0, cnt=0;
+    while( i < aLen && j < bLen ) {
+        if( !cmp(a[i], b[j]) ) {
+            c[i + j] = a[i];
+            i++;
+            *counter+=cnt;
+        } else {
+            cnt++;
+            c[i + j] = b[j];
+            j++;
+        }
+    }
+// Обработаем остаток.
+    if( i == aLen ) {
+        for( ; j < bLen; j++ )
+            c[i + j] = b[j];
+
+    } else {
+        for( ; i < aLen; i++ ) {
+            c[i + j] = a[i];
+            *counter+=cnt;
+        }
+    }
+}
+
+template<typename T>
+void MergeSort( T* a, int aLen, int64_t* counter, bool (*cmp)(T, T) ) {
+    if( aLen <= 1 ) {
+        return;
+    }
+    int firstLen = aLen / 2;
+    int secondLen = aLen - firstLen;
+
+    MergeSort( a, firstLen, counter , cmp);
+
+    MergeSort( a + firstLen, secondLen , counter, cmp);
+    //
+    T* c = new int[aLen];
+    Merge( a, a + firstLen,firstLen,  c, secondLen ,counter, cmp);
+
+    for(int i=0;i<aLen;i++){
+        a[i]=c[i];
+    }
+
+    delete[] c;
+}
+
+int main() {
+    int64_t counter = 0;
+    std::vector<int> tmp;
+    int numb;
+    int i=4;
+
+
+    while(i > 0){
+        std::cin >> numb;
+        tmp.push_back(numb);
+        i--;
+    }
+
+    int n=tmp.size();
+    int* arr=new int[n];
+    for(int i=0;i<n;i++){
+        arr[i]=tmp[i];
+    }
+
+    bool (*p)(int, int) = &compare;
+
+    MergeSort(arr, n, &counter, p);
+
+    delete [] arr;
+
+    std::cout << counter;
+    return 0;
+}
