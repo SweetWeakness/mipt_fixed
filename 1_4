@@ -1,0 +1,76 @@
+/*Во всех вариантах данной задачи необходимо реализовать и использовать сортировку вставками.
+
+ 1_4. Строки.
+Напишите программу, печатающую набор строк в лексикографическом порядке.
+Строки разделяются символом перевода строки '\n'. Если последний символ в потоке ввода '\n', считать, что после него нет пустой строки. Максимальная длина строки 255 символов. Написать свою функцию сравнения строк.
+*/
+
+#include <iostream>
+
+bool leCmp(std::string a, std::string b){
+
+    int tmp;
+    if(a.size()>b.size()){
+        tmp=b.size();
+    }else{
+        tmp=a.size();
+    }
+    for(int i=0;i<tmp;i++){
+        if(a[i]>b[i]) return true;
+        if(a[i]<b[i]) return false;
+    }
+    if(a.size()>b.size()){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+template< typename T >
+void insertionSort(int sizeOfA, T* A, bool (*leCmp)(T, T)) {
+    int sizeOfSortedPart = 1;
+    for(int i = sizeOfSortedPart; i < sizeOfA; ++i) {
+        int insertionPoint = 0;
+        while(leCmp(A[insertionPoint], A[i]) && insertionPoint < i) {
+            ++insertionPoint;
+        }
+
+        T tmp = A[i];
+        for(int j = sizeOfSortedPart; j > insertionPoint; --j) {
+            A[j] = A[j-1];
+        }
+        A[insertionPoint] = tmp;
+
+        ++sizeOfSortedPart;
+    }
+}
+
+
+int main() {
+    int n;
+    std::cin >> n;
+    std::string* input=new std::string[n];
+
+    char c;
+    std::cin.get(c);
+
+    for(int i=0;i<n;i++) {
+        input[i]="";
+        while (std::cin.get(c)) {
+            if (c == '\n') break;
+            input[i] += c;
+        }
+    }
+
+    bool (*p)(std::string, std::string) = &leCmp;
+
+    insertionSort(n, input, p);
+
+    for(int i=n-1;i>=0;i--){
+        std::cout << input[i] << "\n";
+    }
+
+    delete [] input;
+
+    return 0;
+}
