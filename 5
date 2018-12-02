@@ -1,0 +1,238 @@
+/*Решение всех задач данного раздела предполагает использование стека. Способ реализации стека может быть любым (список/динамический массив).
+ *
+5_1. Скобочная последовательность.
+Дан фрагмент последовательности скобок, состоящей из символов (){}[].
+Требуется определить, возможно ли продолжить фрагмент в обе стороны, получив корректную последовательность.
+Длина исходной последовательности ≤ 800000.
+Формат входных данных. Строка, содержащая символы (){}[] и, возможно, перевод строки.
+Формат выходных данных. Если возможно - вывести минимальную корректную последовательность, иначе - напечатать "IMPOSSIBLE".*/
+
+#include <iostream>
+#include <string>
+
+struct Deque{
+
+private://поля
+    int head;//индекст head
+    int tail;//индекст tail
+    char* buffer;//сам буфер
+    int bufSize;//размер
+    int bufElem;//кол-во эл-ов
+
+public:
+    Deque* copy(){
+        Deque* Copy=new Deque(bufSize);
+        for(int i=0;i<bufSize;i++) {
+            Copy->buffer[i] = this->buffer[i];
+        }
+            Copy->head=this->head;
+            Copy->tail=this->tail;
+            Copy->bufElem=this->bufElem;
+        return Copy;
+    }
+
+    void writeout(){
+        for(int i=0;i<bufElem;i++){
+            std::cout << buffer[(tail-1-i+bufSize)%bufSize];
+        }
+    }
+
+    void PushFront(char NumIn){
+        bufPrepare();
+        int tmp=(head==0?bufSize-1:head-1);
+        buffer[tmp]=NumIn;
+        head=tmp;
+        bufElem+=1;
+    }
+
+    void PushBack(char NumIn){
+        bufPrepare();
+        buffer[tail]=NumIn;
+        tail=(tail+1)%bufSize;
+        bufElem+=1;
+    }
+
+    void DelFront(){
+        if(bufElem!=0) {
+            head = (head+1) % bufSize;
+            bufElem-=1;
+        }
+    }
+
+    char Front(){
+            char tmp='0';
+
+            if(bufElem!=0) {
+                tmp=buffer[head];
+            }
+
+            return tmp;
+    };
+
+    void DelBack(){
+        if(bufElem!=0){
+            tail = (tail-1+bufSize)%bufSize;
+            bufElem-=1;
+        }
+    }
+
+    char Back(){
+        char tmp='0';
+
+        if(bufElem!=0){
+            tmp=buffer[(tail-1+bufSize)%bufSize];
+        }
+
+        return tmp;
+    }
+
+    Deque(int size){//конструктор
+        this->buffer=new char[size];
+        this->bufSize=size;
+        this->bufElem=0;
+        this->head=0;
+        this->tail=0;
+    }
+
+    ~Deque(){//диструктор
+        delete [] buffer;
+    }
+
+    bool checkSpace(){//проверка на наличие места под новый элемент
+        return !(bufSize==bufElem);
+    }
+
+    void bufExpand(){//расширение массива в 2 раза
+        char* bufTemp=new char[bufSize*2];
+
+        if(tail<=head){
+
+            for(int i=head;i<bufSize;i++){
+                bufTemp[i-head]=buffer[i];
+            }
+            int tmp=bufSize-head;
+            for(int i=0;i<tail;i++){
+                bufTemp[tmp+i]=buffer[i];
+            }
+
+        }else{
+
+            for(int i=0;i<bufSize;i++){
+                bufTemp[i]=buffer[i];
+            }
+
+        }
+
+        delete [] buffer;
+        buffer=bufTemp;
+        bufSize*=2;
+        head=0;
+        tail=bufElem;
+
+    }
+
+    void bufPrepare(){
+        if(!checkSpace()){
+            bufExpand();
+        }
+    }
+
+    int checkEmpty(){
+    return bufElem==0;
+}
+
+};
+
+int getlast(char* in){//кол-во скобок всего ( поиск )
+    int i=0;
+    while(in[i]==')'||in[i]=='}'||in[i]==']'||in[i]=='['||in[i]=='{'||in[i]=='('){
+        i++;
+    }
+    return i;
+}
+
+
+bool brackets(Deque* deq, Deque* ans, char op, char ed){
+    if (deq->checkEmpty()) {
+        ans->PushBack(op);
+        ans->PushFront(ed);
+        return true;
+    } else {
+        if (deq->Back() == op) {
+            ans->PushFront(ed);
+            deq->DelBack();
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
+bool closed(Deque* deq, Deque* ans, char in) {//процедура дял закрытых скобок
+    if (in == '}') return brackets(deq, ans, '{', '}');
+    if (in == ']') return brackets(deq, ans, '[', ']');
+    if (in == ')')return brackets(deq, ans, '(', ')');
+}
+
+void checkString(char* in, Deque* ans, bool* flg) {//кол-во скобок
+    Deque *deq = new Deque(2);
+    int n = getlast(in);
+    char tmp;
+    for (int i = 0; (i < n) && *flg; i++) {
+        if (in[i] == '(') {
+            ans->PushFront('(');
+            deq->PushBack('(');
+        } else {
+            if (in[i] == '{') {
+                ans->PushFront('{');
+                deq->PushBack('{');
+            } else {
+                if (in[i] == '[') {
+                    ans->PushFront('[');
+                    deq->PushBack('[');
+                } else {
+                    *flg = closed(deq, ans, in[i]);
+                }
+            }
+        }
+    }
+
+    while(!deq->checkEmpty()){
+        tmp=deq->Back();
+        if(tmp=='(') {
+            ans->PushFront(')');
+        }
+        if(tmp=='['){
+            ans->PushFront(']');
+        }
+        if(tmp=='{'){
+            ans->PushFront('}');
+        }
+        deq->DelBack();
+    }
+
+    deq->writeout();
+
+    delete deq;
+}
+
+
+int main() {
+    char* in=new char[800001];
+    Deque* ans=new Deque(2);
+    scanf("%s",in);
+    bool flg=true;
+
+    checkString(in, ans, &flg);
+
+    if(flg){
+        ans->writeout();
+    }else{
+        std::cout << "IMPOSSIBLE";
+    }
+
+    delete [] in;
+    delete ans;
+
+    return 0;
+}
