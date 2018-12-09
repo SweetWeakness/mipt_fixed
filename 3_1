@@ -20,6 +20,7 @@ private:
 public:
     CBinaryNode(T value);
     ~CBinaryNode();
+    CBinaryNode* Copy();
     void preOrderTravers(CBinaryNode* root,std::vector<T>* ans);
     void Insert(T value );
 };
@@ -30,7 +31,6 @@ CBinaryNode<T>::CBinaryNode(T value) {
     Left= nullptr;
     Right= nullptr;
 }
-
 
 template<typename T>
 void CBinaryNode<T>::preOrderTravers(CBinaryNode *root, std::vector<T> *ans) {
@@ -87,6 +87,15 @@ void CBinaryNode<T>::Insert(T value) {
         }
     }
 }
+
+template<typename T>
+CBinaryNode<T>*CBinaryNode<T>::Copy() {
+    CBinaryNode* copy=new CBinaryNode(this->Data);
+    if(this->Left) copy->Left=this->Left->Copy();
+    if(this->Right) copy->Right=this->Right->Copy();
+    return copy;
+}
+
 
 template <typename T>
 void tree(T* in, std::vector<T>* ans, int n){
