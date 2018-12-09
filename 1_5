@@ -82,13 +82,11 @@ void Deque<T>::DelFront() {
 
 template<typename T>
 T Deque<T>::Front() {
-    T tmp=NULL;
-
     if(bufElem!=0) {
-        tmp=buffer[head];
+        return buffer[head];
+    }else{
+        return NULL;
     }
-
-    return tmp;
 }
 
 template<typename T>
@@ -101,13 +99,11 @@ void Deque<T>::DelBack() {
 
 template<typename T>
 T Deque<T>::Back() {
-    T tmp=NULL;
-
     if(bufElem!=0){
-        tmp=buffer[(tail-1+bufSize)%bufSize];
+        return buffer[(tail-1+bufSize)%bufSize];
+    }else{
+        return NULL;
     }
-
-    return tmp;
 }
 
 template<typename T>
