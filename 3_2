@@ -293,7 +293,7 @@ int main() {
     }
 
     bool (*p1)(int, int ) = &cmpData;
-    bool (*p2)(int, int ) = &cmpData;
+    bool (*p2)(int, int ) = &cmpPriority;
 
 
     std::cout << tree(inData, inPrior, n, p1, p2);
