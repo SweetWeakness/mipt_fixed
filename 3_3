@@ -1,0 +1,245 @@
+/*3_2. Порядковые статистики. Дано число N и N строк. Каждая строка содержит команду добавления или удаления натуральных чисел,
+ * а также запрос на получение k-ой порядковой статистики. Команда добавления числа A задается положительным числом A,
+ * команда удаления числа A задается отрицательным числом “-A”. Запрос на получение k-ой порядковой статистики задается числом k.
+ * Требуемая скорость выполнения запроса - O(log n).
+*/
+
+#include <iostream>
+
+template<typename T>
+class Node // структура для представления узлов дерева
+{
+private:
+    T Data;
+    int Height;
+    Node* Left;
+    Node* Right;
+    int Size;
+
+public:
+    Node(T value);
+    int fixSize();
+    int height();
+    int bfactor();
+    void fixheight();
+    Node* rotateright(); // правый поворот вокруг узла
+    Node* rotateleft(); // левый поворот вокруг узла
+    Node* balance(); // балансировка узла
+    Node* insert(T key, bool (*p)(T,T)); // вставка ключа k в дерево
+    Node* findmax(); // поиск узла с минимальным ключом в дереве
+    Node* removemax(); // удаление узла с минимальным ключом из дерева
+    Node* remove(T key, bool (*p)(T,T)); // удаление ключа key
+    void deleteNode();
+    T getK(int K);
+    Node* Copy();
+
+};
+
+template<typename T>
+Node<T>::Node(T value) {
+    Data=value;
+    Height=1;
+    Left=nullptr;
+    Right=nullptr;
+}
+
+template<typename T>
+int Node<T>::fixSize() {
+    if(!this) return 0;
+    this->Size = this->Left->fixSize() + this->Right->fixSize() + 1;
+    return this->Size;
+}
+
+template<typename T>
+int Node<T>::height() {
+    return this ? this->Height : 0;
+}
+
+template<typename T>
+int Node<T>::bfactor() {
+    return (this->Right->height()) - (this->Left->height());
+}
+
+template<typename T>
+void Node<T>::fixheight() {
+    int h_L = this->Left->height();
+    int h_R = this->Right->height();
+    this->Height = (h_L > h_R  ?  h_L  :  h_R)+1;
+}
+
+template<typename T>
+Node<T> *Node<T>::rotateright() {
+    Node* q = this->Left;
+    this->Left = q->Right;
+    q->Right = this;
+    this->fixheight();
+    q->fixheight();
+    return q;
+}
+
+template<typename T>
+Node<T> *Node<T>::rotateleft() {
+    Node* p = this->Right;
+    this->Right = p->Left;
+    p->Left = this;
+    this->fixheight();
+    p->fixheight();
+    return p;
+}
+
+template<typename T>
+Node<T> *Node<T>::balance() {
+    this->fixheight();
+    if( this->bfactor()==2 )
+    {
+        if( this->Right->bfactor() < 0 )
+            this->Right = this->Right->rotateright();
+        return this->rotateleft();
+    }
+    if( this->bfactor()==-2 )
+    {
+        if( this->Left->bfactor() > 0  )
+            this->Left = this->Left->rotateleft();
+        return this->rotateright();
+    }
+    return this; // балансировка не нужна
+}
+
+template<typename T>
+Node<T> *Node<T>::insert(T key, bool (*p)(T,T)) {
+    if( !this ) return new Node(key);
+    if( p(this->Data, key) ){
+        this->Left = this->Left->insert(key, p);
+    } else{
+        this->Right = this->Right->insert(key, p);
+    }
+    return this->balance();
+}
+
+template<typename T>
+Node<T> *Node<T>::findmax() {
+    return this->Right ? this->Right->findmax() : this;
+}
+
+template<typename T>
+Node<T> *Node<T>::removemax() {
+    if( this->Right== nullptr )
+        return this->Left;
+    this->Right = this->Right->removemax();
+    return this->balance();
+}
+
+template<typename T>
+Node<T> *Node<T>::remove(T key, bool (*p)(T,T)) {
+    if(!this) return nullptr;
+
+    if(p(this->Data, key)){
+        this->Left=this->Left->remove(key, p);
+
+    }else if(p(key, this->Data)){
+        this->Right=this->Right->remove(key, p);
+
+    } else{ // key == this->Data
+        Node* L=this->Left;
+        Node* R=this->Right;
+        delete this;
+        if(!L) return R;
+        Node* max = L->findmax();
+        max->Left=L->removemax();
+        max->Right=R;
+        return max->balance();
+    }
+    return this->balance();
+}
+
+template<typename T>
+void Node<T>::deleteNode() {
+    if (!this) {
+        return;
+    }
+    this->Left->deleteNode();
+    this->Right->deleteNode();
+    delete this;
+}
+
+template<typename T>
+T Node<T>::getK(int K) {
+    this->fixSize();
+    Node* tmpNode=this;
+    int i=1;
+    while(tmpNode) {
+        if(tmpNode->Left ? (tmpNode->Left->Size == K):0==K){
+            return tmpNode->Data;
+        }else if (tmpNode->Left ? (tmpNode->Left->Size > K) : false) {
+            tmpNode=tmpNode->Left;
+        }else{
+            K-= (tmpNode->Left) ? (tmpNode->Left->Size+1) : 1;
+            tmpNode=tmpNode->Right;
+        }
+    }
+
+    return -1;
+}
+
+template<typename T>
+Node<T> *Node<T>::Copy() {
+    Node<T>* copy=new Node<T>(this->Data);
+    copy->Height=this->Height;
+    copy->Size=this->Size;
+
+    if(this->Left) copy->Left=this->Left->Copy();
+    if(this->Right) copy->Right=this->Right->Copy();
+    return copy;
+}
+
+template <typename T>
+void AVL(T* inData,int* inK, T* ans, int n, bool (*p)(T,T)){
+    T key;
+    int K;
+    Node<T>* node=nullptr;
+    for(int i=0;i<n;i++){
+        key=inData[i]; K=inK[i];
+
+        if(!p(0,key)){
+            node=node->insert(key, p);
+        }else{
+            key*=-1;
+            node=node->remove(key, p);
+        }
+
+
+        ans[i]=node->getK(K);
+    }
+
+    node->deleteNode();
+}
+
+bool cmpData(int a, int b) {
+    return a>b;
+}
+
+int main() {
+    int n;
+    std::cin >> n;
+    int* inData=new int[n];
+    int* inK=new int[n];
+    int* ans=new int[n];
+    for(int i=0;i<n;i++){
+        std::cin >> inData[i];
+        std::cin >> inK[i];
+    }
+
+    bool (*p)(int, int ) = &cmpData;
+
+    AVL(inData, inK, ans, n, p);
+
+    for(int i=0;i<n;i++){
+        std::cout << ans[i] <<"\n";
+    }
+
+    delete [] inData;
+    delete inK;
+    delete [] ans;
+
+    return 0;
+}
