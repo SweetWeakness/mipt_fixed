@@ -28,21 +28,8 @@ public:
     CBinaryNode* Copy();
     void preOrderTravers(CBinaryNode* root,std::vector<T>* ans);
     void Insert(T value,bool (*p)(T,T) );
-    CBinaryNode* getLeft();
-    CBinaryNode* getRight();
-    void setLeft(CBinaryNode* x);
-    void setRight(CBinaryNode* x);
 };
 
-template<typename T>
-CBinaryNode<T> *CBinaryNode<T>::getLeft() {
-    return this->Left;
-}
-
-template<typename T>
-CBinaryNode<T> *CBinaryNode<T>::getRight() {
-    return this->Right;
-}
 
 template<typename T>
 CBinaryNode<T>::CBinaryNode(T value) {
@@ -59,11 +46,11 @@ void CBinaryNode<T>::preOrderTravers(CBinaryNode *root, std::vector<T> *ans) {
         root=Stack.top();
         Stack.pop();
         (*ans).push_back(root->Data);
-        if(root->getRight()){
-            Stack.push(root->getRight());
+        if(root->Right){
+            Stack.push(root->Right);
         }
-        if(root->getLeft()){
-            Stack.push(root->getLeft());
+        if(root->Left){
+            Stack.push(root->Left);
         }
     }
 }
@@ -76,24 +63,14 @@ CBinaryNode<T>::~CBinaryNode() {
     while(!Stack.empty()){
         root=Stack.top();
         Stack.pop();
-        if(root->getRight()){
-            Stack.push(root->getRight());
+        if(root->Right){
+            Stack.push(root->Right);
         }
-        if(root->getLeft()){
-            Stack.push(root->getLeft());
+        if(root->Left){
+            Stack.push(root->Left);
         }
         delete root;
     }
-}
-
-template<typename T>
-void CBinaryNode<T>::setLeft(CBinaryNode* x) {
-    this->Left=x;
-}
-
-template<typename T>
-void CBinaryNode<T>::setRight(CBinaryNode* x) {
-    this->Right=x;
 }
 
 template<typename T>
@@ -101,17 +78,17 @@ void CBinaryNode<T>::Insert(T value,bool (*p)(T,T)) {
     CBinaryNode* node=this;
     while(node!= nullptr){
         if( p(node->Data, value) )
-            if(node->getLeft()!= nullptr){
-                node=node->getLeft();
+            if(node->Left!= nullptr){
+                node=node->Left;
             }else{
-                node->setLeft(new CBinaryNode( value ));
+                node->Left = new CBinaryNode( value );
                 return;
             }
         else
-        if(node->getRight()!= nullptr){
-            node=node->getRight();
+        if(node->Right!= nullptr){
+            node=node->Right;
         }else{
-            node->setRight(new CBinaryNode( value ));
+            node->Right = new CBinaryNode( value );
             return;
         }
     }
@@ -120,11 +97,10 @@ void CBinaryNode<T>::Insert(T value,bool (*p)(T,T)) {
 template<typename T>
 CBinaryNode<T>*CBinaryNode<T>::Copy() {
     CBinaryNode* copy=new CBinaryNode(this->Data);
-    if(this->getLeft()) copy->getLeft()=this->getLeft()->Copy();
-    if(this->getRight()) copy->getRight()=this->getRight()->Copy();
+    if(this->Left) copy->Left=this->Left->Copy();
+    if(this->Right) copy->Right=this->Right->Copy();
     return copy;
 }
-
 
 
 template <typename T>
