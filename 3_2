@@ -132,6 +132,8 @@ public:
     TNode* getRight();
     T getData();
     P getPriority();
+    void Split(T key, TNode<T,P>*& left, TNode<T,P>*& right,bool (*p1)(T,T),bool (*p2)(P,P) );
+    void Insert(T Data, P Priority, bool (*p1)(T,T), bool (*p2)(P,P));
 };
 
 template<typename T, typename P>
@@ -196,39 +198,41 @@ P TNode<T, P>::getPriority() {
     return this->Priority;
 }
 
-
 // Разрезание декартового дерева по ключу.
-template <typename T, typename P>
-void Split( TNode<T,P>* currentNode, T key, TNode<T,P>*& left, TNode<T,P>*& right,bool (*p1)(T,T),bool (*p2)(P,P) ) {
+template<typename T, typename P>
+void TNode<T, P>::Split(T key, TNode<T, P> *&left, TNode<T, P> *&right, bool (*p1)(T, T), bool (*p2)(P, P)) {
+    TNode<T,P>* currentNode=this;
     if( currentNode == 0 ) {
         left = 0;
         right = 0;
     } else if( !p1(currentNode->getData(), key)) {
-        Split( currentNode->getRight(), key, currentNode->getRight(), right,p1,p2 );
+        currentNode->Right->Split( key, currentNode->Right, right, p1, p2 );
         left = currentNode;
     } else {
-        Split( currentNode->getLeft(), key, left, currentNode->getLeft(),p1,p2 );
+        currentNode->Left->Split(key, left, currentNode->Left, p1, p2 );
         right = currentNode;
     }
 }
 
+
 template <typename T, typename P>
-void Insert(T Data, P Priority, TNode<T, P>*& CNode, bool (*p1)(T,T), bool (*p2)(P,P)) {
+void TNode<T, P>::Insert(T Data, P Priority, bool (*p1)(T,T), bool (*p2)(P,P)) {
+    TNode<T, P>* CNode=this;
     if (CNode == nullptr) {
         CNode = new TNode<T, P>(Data, Priority);
         return;
     }
-    if (p2(CNode->getPriority(), Priority)) {
-        if (p1(CNode->getData(), Data)) {
-            Insert(Data, Priority, CNode->getLeft(),p1,p2);
+    if (p2(CNode->Priority, Priority)) {
+        if (p1(CNode->Data, Data)) {
+            CNode->Left->Insert(Data, Priority,p1,p2);
         }
         else {
-            Insert(Data, Priority, CNode->getRight(),p1,p2);
+            CNode->Right->Insert(Data, Priority,p1,p2);
         }
     }
     else {
         TNode<T, P>* newNode = new TNode<T, P>(Data, Priority);
-        Split(CNode, Data, newNode->Left, newNode->Right,p1,p2);
+        CNode->Split(Data, newNode->Left, newNode->Right, p1, p2);
         CNode = newNode;
     }
     return;
@@ -272,7 +276,7 @@ int tree(T* inData, P* inPrior, int n, bool (*p1)(T,T), bool (*p2)(P,P)){
     TNode<T,P>* Node2=new TNode<T,P>(inData[0], inPrior[0]);
     CBinaryNode<T>* Node1=new CBinaryNode<T>(inData[0]);
     for(int i=1;i<n;i++){
-        Insert(inData[i],inPrior[i], Node2,p1,p2);
+        Node2->Insert(inData[i],inPrior[i],p1,p2);
         Node1->Insert(inData[i],p1);
     }
 
