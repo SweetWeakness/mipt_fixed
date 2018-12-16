@@ -16,16 +16,15 @@ bool cmpData(int a, int b) {
 
 // Узел двоичного дерева с данными типа int.
 template <typename T>
-class CBinaryNode {
-private:
+struct CBinaryNode {
+public:
     T Data;
     CBinaryNode* Left; // NULL, если нет.
     CBinaryNode* Right; // NULL, если нет.
 
-public:
     CBinaryNode(T value);
     ~CBinaryNode();
-    CBinaryNode* Copy();
+    CBinaryNode(CBinaryNode* cbn);
     void preOrderTravers(CBinaryNode* root,std::vector<T>* ans);
     void Insert(T value,bool (*p)(T,T) );
 };
@@ -57,20 +56,7 @@ void CBinaryNode<T>::preOrderTravers(CBinaryNode *root, std::vector<T> *ans) {
 
 template<typename T>
 CBinaryNode<T>::~CBinaryNode() {
-    std::stack <CBinaryNode*> Stack;
-    Stack.push(this);
-    CBinaryNode* root;
-    while(!Stack.empty()){
-        root=Stack.top();
-        Stack.pop();
-        if(root->Right){
-            Stack.push(root->Right);
-        }
-        if(root->Left){
-            Stack.push(root->Left);
-        }
-        delete root;
-    }
+
 }
 
 template<typename T>
@@ -95,23 +81,72 @@ void CBinaryNode<T>::Insert(T value,bool (*p)(T,T)) {
 }
 
 template<typename T>
-CBinaryNode<T>*CBinaryNode<T>::Copy() {
-    CBinaryNode* copy=new CBinaryNode(this->Data);
-    if(this->Left) copy->Left=this->Left->Copy();
-    if(this->Right) copy->Right=this->Right->Copy();
-    return copy;
+CBinaryNode<T>::CBinaryNode(CBinaryNode* node) {
+    Data=node->Data;
+    if(node->Left) Left=CBinaryNode(node->Left);
+    if(node->Right) Right=CBinaryNode(node->Right);
+}
+
+template <typename T>
+class Node{
+private:
+    CBinaryNode<T>* CBN;
+public:
+    Node(T value);
+    ~Node();
+    Node(Node* cbn);
+    void preOrderTravers(Node* root,std::vector<T>* ans);
+    void Insert(T value,bool (*p)(T,T) );
+};
+
+template<typename T>
+Node<T>::Node(T value) {
+    CBN=new CBinaryNode<T>(value);
+}
+
+template<typename T>
+Node<T>::~Node() {
+    std::stack <CBinaryNode<T>*> Stack;
+    Stack.push(this->CBN);
+    CBinaryNode<T>* root;
+    while(!Stack.empty()){
+        root=Stack.top();
+        Stack.pop();
+        if(root->Right){
+            Stack.push(root->Right);
+        }
+        if(root->Left){
+            Stack.push(root->Left);
+        }
+        delete root;
+    }
+}
+
+template<typename T>
+Node<T>::Node(Node *cbn) {
+    CBN=CBinaryNode<T>(cbn);
+}
+
+template<typename T>
+void Node<T>::preOrderTravers(Node *root, std::vector<T> *ans) {
+    root->CBN->preOrderTravers(root->CBN, ans);
+}
+
+template<typename T>
+void Node<T>::Insert(T value, bool (*p)(T, T)) {
+    CBN->Insert(value, p);
 }
 
 
 template <typename T>
 void tree(T* in, std::vector<T>* ans, int n, bool (*p)(T,T)){
-    CBinaryNode<T>* Node=new CBinaryNode<T>(in[0]);
+    Node<T>* Node1=new Node<T>(in[0]);
     for(int i=1;i<n;i++){
-        Node->Insert(in[i],p);
+        Node1->Insert(in[i],p);
     }
 
-    Node->preOrderTravers(Node, ans);
-    delete Node;
+    Node1->preOrderTravers(Node1, ans);
+    delete Node1;
 }
 
 int main() {
